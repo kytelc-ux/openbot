@@ -14,6 +14,35 @@ docker run -p 3001:3001 --env-file .env \
   -e EMBEDDED_POSTGRES=on -v openbot-data:/var/lib/postgresql openbot
 ```
 
+## Persistent external PostgreSQL
+
+For a deployment you expect to keep, use PostgreSQL outside the OpenBot container and leave
+`EMBEDDED_POSTGRES` off. The database must have the `vector` extension available.
+
+```dotenv
+DATABASE_URL=<PostgreSQL connection string for your pgvector database>
+KEY_ENCRYPTION_KEY=<output of openssl rand -base64 32>
+INTELLIGENCE_API_KEY=cpk-...
+COPILOTKIT_LICENSE_TOKEN=...
+OPENAI_API_KEY=...
+```
+
+Run migrations once per release before starting the container:
+
+```sh
+docker run --rm --env-file .env openbot \
+  sh -c "cd /app/server && bun x drizzle-kit migrate --config=drizzle.config.ts"
+```
+
+Then start the app:
+
+```sh
+docker run -p 3001:3001 --env-file .env openbot
+```
+
+Open `http://localhost:3001`, or your platform's HTTPS URL. If anyone else can reach the deployment,
+remove `OPENBOT_SINGLE_USER=true` and configure sign-in first.
+
 ## What is in the image, and what is not
 
 **In it:** the built app, the API, and Chromium. One port, 3001. The browser listens on 4100 inside
