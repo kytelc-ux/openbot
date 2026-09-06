@@ -1,0 +1,55 @@
+# Portable API + background drafting worker. PostgreSQL and TLS are external.
+# This is intentionally separate from the laptop/browser-computer stack.
+services:
+  api:
+    image: ${OPENBOT_CLOUD_IMAGE:-openbot-cloud:local}
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      SERVER_PORT: "3001"
+      OPENBOT_SINGLE_USER: "false"
+      DATABASE_URL: ${DATABASE_URL:?Set a persistent PostgreSQL connection}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the public HTTPS URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a unique session secret}
+      INITIAL_ADMIN_EMAILS: ${INITIAL_ADMIN_EMAILS:?Set the owner email}
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:?Set the public HTTPS origin}
+      TENANT_PACKAGE_DIR: /app/examples/fintech
+      # Keep shells and shared browser sessions out of the credential-holding API.
+      AGENT_COMPUTER_URL: ""
+      COMPUTER_SUPERVISOR_URL: ""
+      COMPUTER_SANDBOX_NAMESPACE: ""
+      MANAGED_AGENT_AG_UI_URL: ""
+    ports:
+      - "127.0.0.1:${CLOUD_HTTP_PORT:-3001}:3001"
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const r = await fetch('http://localhost:3001/health'); process.exit(r.ok ? 0 : 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cloud-worker:
+    image: ${OPENBOT_CLOUD_IMAGE:-openbot-cloud:local}
+    command: ["bun", "scripts/run-cloud-team.ts", "--loop"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Set a persistent PostgreSQL connection}
+      CLOUD_TEAM_CONFIG: ${CLOUD_TEAM_CONFIG:?Set reviewed model IDs, rates and budgets}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 150s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

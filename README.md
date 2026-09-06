@@ -121,6 +121,12 @@ has the persistent setup, embedded PostgreSQL option, minimum sizes, platform no
 
 ## Try it
 
+For a source-backed planning team with lower-cost execution, approved shared
+memory, and per-task token accounting, open `/cloud-team`. See
+[Cloud Team](docs/cloud-team.md) for model configuration, the dedicated worker,
+portable deployment, and the web/mobile roadmap. It is separate from ordinary
+chat, and its budgets do not apply to other Bot runs.
+
 - Open `/bot` and ask: `Open news.ycombinator.com and tell me the top story.`
 - Ask the Bot to fill out <https://httpbin.org/forms/post>, then inspect `/admin/audit`.
 - Open `/admin/boundaries`, add a deny rule or preset, and retry the same browser action.

@@ -46,6 +46,9 @@ import {
   describeComputerIsolation,
 } from "./computer/provider";
 import { createSnapshotStore } from "./computer/snapshot-store";
+import { loadCloudTeamConfig } from "./cloud-team/config";
+import { createCloudTeamStore } from "./cloud-team/store";
+import { cloudTeamMemoryTools } from "./cloud-team/tools";
 import { loadConfig } from "./config";
 import {
   type IdentifyActor,
@@ -147,6 +150,8 @@ const config = loadConfig();
 // `serverPort` in config.ts for what `process.env.PORT ?? …` did with `PORT=` instead.
 const port = config.port;
 const database = createDatabase(config.databaseUrl);
+const cloudTeamStore = createCloudTeamStore(database);
+const cloudTeamConfiguration = loadCloudTeamConfig(process.env);
 await initializeDevActorUser(database, config.singleUser);
 // The vault, built before the agent store because a customer's agent may sit behind a key and that
 // key belongs here rather than on the agent row. See agents/auth-header.ts.
@@ -504,8 +509,10 @@ const resolveRuntimeModelApiKey = () =>
 
 // Tools run here, not in the browser. Each one still executes through the plugin store, so the
 // grant, the policy and the audit row are exactly where they were.
-const loadToolsForActor = (actorId: string) => (botId: string) =>
-  grantedTools({ store: pluginStore, botId, actorId });
+const loadToolsForActor = (actorId: string) => async (botId: string) => [
+  ...(await grantedTools({ store: pluginStore, botId, actorId })),
+  ...cloudTeamMemoryTools(cloudTeamStore, actorId),
+];
 
 /*
  * What the deployment tells a remote Bot about the run it is starting.
@@ -1070,6 +1077,8 @@ const app = createApp(
   routineStore,
   // Where each person is in first-run onboarding, read by /api/me and written by the wizard.
   createOnboardingStore(database),
+  // Materials and trusted memory exist even when paid Cloud Team execution is not configured.
+  { store: cloudTeamStore, configuration: cloudTeamConfiguration },
 );
 
 /**

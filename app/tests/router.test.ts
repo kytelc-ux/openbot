@@ -10,3 +10,9 @@ test("provides the protected credential administration route", () => {
     "/admin/credentials",
   );
 });
+
+test("provides Cloud Team inside the authenticated app", () => {
+  expect(router.routesByPath["/cloud-team"]?.id).toBe(
+    "/_authed/_app/cloud-team",
+  );
+});

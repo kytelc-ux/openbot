@@ -33,6 +33,9 @@ import type { ComputerGateway } from "./computer/gateway";
 import type { PageFrameStore } from "./computer/page-frames";
 import type { PolicyStore } from "./computer/policy-store";
 import { createComputerRoutes } from "./computer/routes";
+import { createCloudTeamRoutes } from "./cloud-team/routes";
+import type { CloudTeamConfiguration } from "./cloud-team/config";
+import type { CloudTeamStore } from "./cloud-team/store";
 import { configuredAuthProviders, type DeploymentConfig } from "./config";
 import type { CredentialAdminService, CredentialInput } from "./credentials";
 import { createIntelligenceClient } from "./intelligence-client";
@@ -202,6 +205,17 @@ export function createApp(
    * nothing can finish.
    */
   onboardingStore?: OnboardingStore,
+  /**
+   * A person's bounded material-backed team workspace.
+   *
+   * Appended because this function's optional dependencies are positional. The routes remain
+   * available when model configuration is absent so materials and human-approved memory are still
+   * portable; only queuing paid work is refused by the route.
+   */
+  cloudTeam?: {
+    store: CloudTeamStore;
+    configuration: CloudTeamConfiguration;
+  },
 ) {
   const app = new Hono<{ Variables: AppVariables }>();
 
@@ -898,6 +912,17 @@ export function createApp(
 
   if (routineStore) {
     app.route("/api/routines", createRoutineRoutes(routineStore, requireUser));
+  }
+
+  if (cloudTeam) {
+    app.route(
+      "/api/cloud-team",
+      createCloudTeamRoutes(
+        cloudTeam.store,
+        cloudTeam.configuration,
+        requireUser,
+      ),
+    );
   }
 
   if (componentStore) {
