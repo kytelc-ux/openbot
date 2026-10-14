@@ -45,9 +45,9 @@ jobs:
           curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 https://antigravity.google/cli/install.sh | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           mkdir -p "$RUNNER_TEMP/agent" && cd "$RUNNER_TEMP/agent"
-          curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 -o bridge.mjs https://antigravity.luch.dev/cloud/bridge-b597ca00e1ca.mjs
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 -o bridge.mjs https://antigravity.luch.dev/cloud/bridge-4d03fa410fa7.mjs
           curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 -o start-cloud-bridge.mjs https://antigravity.luch.dev/cloud/start-cloud-bridge-e9189556a93e.mjs
-          printf '%s  %s\n' b597ca00e1ca5552485dba0ee20c783a3b70716b9ee35ba39ca5144acb64255f bridge.mjs e9189556a93e717078e9927b126b9b74b2c12763d883ac38c39d4f8e978d8eaf start-cloud-bridge.mjs | sha256sum -c -
+          printf '%s  %s\n' 4d03fa410fa7b5c683d0da480759135f049252b42e7e91058e6922171beb6b98 bridge.mjs e9189556a93e717078e9927b126b9b74b2c12763d883ac38c39d4f8e978d8eaf start-cloud-bridge.mjs | sha256sum -c -
           npm install --no-audit --no-fund --silent node-pty@1.1.0
 
       - name: Configure git author
